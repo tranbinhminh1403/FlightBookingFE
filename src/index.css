@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+
+/* Custom styles for auth page */
+.auth-tabs .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+.auth-tabs .ant-tabs-nav::before {
+  border-bottom: none;
+}
+
+/* Custom styles for form inputs */
+.ant-input-prefix {
+  margin-right: 8px;
+}
+
+/* Custom button styles */
+.ant-btn-primary {
+  background-color: #1677ff;
+  height: 40px;
+  font-size: 16px;
+}
+
+.ant-btn-primary:hover {
+  background-color: #4096ff;
+}
+
+/* Card styles */
+.ant-card {
+  border-radius: 12px;
+}
+
+/* Input styles */
+.ant-input,
+.ant-input-password {
+  border-radius: 8px;
+}
+
+.ant-statistic-title {
+  color: #6b7280;
+}
