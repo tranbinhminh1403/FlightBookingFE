@@ -1,50 +1,72 @@
-# React + TypeScript + Vite
+# SkyBooker - Flight Booking Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern flight booking application built with React, TypeScript, and Ant Design.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js (v18 or higher)
+- npm (v9 or higher)
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd flightbooking_client
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Install dependencies:
+```bash
+npm install
+```
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+3. Create a `.env` file in the root directory and add:
+```env
+VITE_API_URL=http://your-backend-api-url
+```
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+## Running the Application
+
+To start the development server:
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
+
+## Build for Production
+
+To build the application for production:
+```bash
+npm run build
+```
+
+## Features
+
+- User authentication (login/register)
+- Flight search
+- Popular destinations
+- Special offers
+- Responsive design
+- ...
+
+## Tech Stack
+
+- React
+- TypeScript
+- Vite
+- Ant Design
+- Tailwind CSS
+- React Router DOM
+- Axios
+
+## Project Structure
+
+```
+src/
+  ├── hooks/         # Custom hooks
+  ├── page/          # Page components
+  ├── routes/        # Route configurations
+  ├── App.tsx        # Root component
+  └── main.tsx       # Entry point
 ```
