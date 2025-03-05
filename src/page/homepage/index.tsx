@@ -1,4 +1,4 @@
-import { Card, Button, DatePicker, Select, Form, Typography, Row, Col, Statistic, Tag } from "antd"
+import { Card, Button, DatePicker, Select, Form, Typography, Row, Col, Statistic, Tag, Input, message } from "antd"
 import {
   SearchOutlined,
   RocketOutlined,
@@ -12,6 +12,8 @@ import Header from "../../components/header"
 import Footer from "../../components/footer"
 import { useSearchFlights } from "../../hooks/useSearchFlights"
 import dayjs from "dayjs"
+import { useNavigate } from 'react-router-dom'
+import { useSearchResults } from '../../context/SearchResultsContext'
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
@@ -81,23 +83,24 @@ const features = [
 export default function HomePage() {
   const [form] = Form.useForm()
   const { searchFlights, isLoading, error } = useSearchFlights()
+  const navigate = useNavigate()
+  const { setSearchResults } = useSearchResults()
 
   const onSearch = async (values: SearchFormValues) => {
     try {
       const searchParams = {
-        departureAirport: values.from,
-        arrivalAirport: values.to,
-        // status: "on-time", // Default value
-        // airlineName: "Global Airlines", // Default value
+        departureAirport: values.from.toUpperCase(),
+        arrivalAirport: values.to.toUpperCase(),
         departureTimeStart: values.dates?.[0].format("YYYY-MM-DDTHH:mm:ss"),
-        departureTimeEnd: values.dates?.[1].format("YYYY-MM-DDT23:59:59"),
-        // arrivalTimeStart: values.dates?.[1].format("YYYY-MM-DDT00:00:00"),
-        // arrivalTimeEnd: values.dates?.[1].format("YYYY-MM-DDT23:59:59"),
+        departureTimeEnd: values.dates?.[0].format("YYYY-MM-DDT23:59:59"),
       }
-      console.log("Search params:", searchParams)
-      const results = await searchFlights(searchParams)
-      console.log("Search results:", results)
+      
+      navigate('/search', { 
+        state: { searchParams } 
+      });
+      
     } catch (error) {
+      message.error('Failed to search flights')
       console.error("Search failed:", error)
     }
   }
@@ -133,34 +136,26 @@ export default function HomePage() {
               <Form.Item 
                 name="from" 
                 label="From"
-                rules={[{ required: true, message: "Please select departure airport!" }]}
+                rules={[{ required: true, message: "Please enter departure airport!" }]}
               >
-                <Select
-                  showSearch
-                  placeholder="Departure City"
-                  options={[
-                    { value: "JFK", label: "New York (JFK)" },
-                    { value: "LAX", label: "Los Angeles (LAX)" },
-                    { value: "LHR", label: "London (LHR)" },
-                  ]}
+                <Input
+                  placeholder="Enter departure airport (e.g., SGN)"
                   size="large"
+                  style={{ textTransform: 'uppercase' }}
+                  maxLength={3}
                 />
               </Form.Item>
 
               <Form.Item 
                 name="to" 
                 label="To"
-                rules={[{ required: true, message: "Please select arrival airport!" }]}
+                rules={[{ required: true, message: "Please enter arrival airport!" }]}
               >
-                <Select
-                  showSearch
-                  placeholder="Arrival City"
-                  options={[
-                    { value: "CDG", label: "Paris (CDG)" },
-                    { value: "LAX", label: "Los Angeles (LAX)" },
-                    { value: "SYD", label: "Sydney (SYD)" },
-                  ]}
+                <Input
+                  placeholder="Enter arrival airport (e.g., BKK)"
                   size="large"
+                  style={{ textTransform: 'uppercase' }}
+                  maxLength={3}
                 />
               </Form.Item>
 

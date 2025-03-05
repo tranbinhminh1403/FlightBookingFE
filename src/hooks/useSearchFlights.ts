@@ -2,14 +2,11 @@ import { useState } from 'react'
 import axios from 'axios'
 
 interface FlightSearchParams {
-  departureAirport: string
-  arrivalAirport: string
-  status: string
-  airlineName: string
-  departureTimeStart: string
-  departureTimeEnd: string
-  arrivalTimeStart: string
-  arrivalTimeEnd: string
+  departureAirport?: string
+  arrivalAirport?: string
+  airlineName?: string
+  departureTimeStart?: string
+  departureTimeEnd?: string
 }
 
 interface Flight {
@@ -33,9 +30,9 @@ export const useSearchFlights = () => {
       setIsLoading(true)
       setError(null)
 
-      const response = await axios.post<Flight[]>(
-        `${import.meta.env.VITE_API_URL}/flights/search`,
-        params
+      const response = await axios.get<Flight[]>(
+        `${import.meta.env.VITE_API_URL}/flights/tickets/search`,
+        { params }
       )
 
       setFlights(response.data)

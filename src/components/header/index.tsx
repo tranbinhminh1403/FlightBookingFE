@@ -1,6 +1,6 @@
 import React from 'react'
 import { Layout, Button, Space, Dropdown } from 'antd'
-import { UserOutlined, LogoutOutlined } from '@ant-design/icons'
+import { UserOutlined, LogoutOutlined, SearchOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom' // Assuming you're using React Router for navigation
 
 const { Header } = Layout
@@ -30,41 +30,33 @@ const HeaderComponent: React.FC = () => {
   ]
 
   return (
-    <Header className="bg-white shadow-md flex items-center justify-between px-4 h-16">
-      {/* Logo */}
-      <div className="flex items-center">
-        <Link to="/" className="flex items-center">
-          <UserOutlined className="text-2xl text-blue-500 mr-2" />
-          <span className="text-xl font-bold text-blue-800">SkyBooker</span>
-        </Link>
-      </div>
+    <Header className="bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-full">
+        <div className="flex items-center">
+          <Link to="/" className="text-2xl font-bold text-blue-600 mr-8">
+            SkyBooking
+          </Link>
+          <Link 
+            to="/search" 
+            className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+          >
+            <SearchOutlined className="mr-1" />
+            <span>Search Flights</span>
+          </Link>
+        </div>
 
-      {/* Desktop Menu */}
-      <div className="md:flex items-center">
-        <Space className="ml-4">
+        <Space>
           {isAuthenticated ? (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Button icon={<UserOutlined />}>My Account</Button>
             </Dropdown>
           ) : (
-            <Button type="primary" icon={<UserOutlined />} onClick={() => navigate('/auth')}>
+            <Button type="primary" onClick={() => navigate('/auth')}>
               Login
             </Button>
           )}
         </Space>
       </div>
-
-      {/* Mobile Menu Button */}
-      {/* <div className="md:hidden">
-        <Button
-          type="text"
-          icon={<MenuOutlined />}
-          onClick={() => setMobileMenuVisible(true)}
-        />
-      </div> */}
-
-      {/* Mobile Menu Drawer */}
-
     </Header>
   )
 }

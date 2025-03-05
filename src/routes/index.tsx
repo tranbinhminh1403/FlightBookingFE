@@ -1,6 +1,8 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AuthPage from '../page/authpage';
 import HomePage from '../page/homepage';
+import SearchResult from '../page/searchResultPage';
+import SearchPage from '../page/searchPage';
 
 // Protected Route wrapper component
 // const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -20,11 +22,15 @@ export const router = createBrowserRouter([
     element: <HomePage />,
   },
   {
+    path: '/search',
+    element: <SearchPage />,
+  },
+  {
     path: '/auth',
     element: <AuthPage />,
   },
   {
     path: '*',
     element: <Navigate to="/" replace />,
-  },
+  }
 ]); 
