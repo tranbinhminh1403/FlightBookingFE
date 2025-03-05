@@ -8,9 +8,21 @@ import {
   ArrowRightOutlined,
   StarFilled,
 } from "@ant-design/icons"
+import Header from "../../components/header"
+import Footer from "../../components/footer"
+import { useSearchFlights } from "../../hooks/useSearchFlights"
+import dayjs from "dayjs"
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
+
+interface SearchFormValues {
+  from: string;
+  to: string;
+  dates?: [dayjs.Dayjs, dayjs.Dayjs];
+  airline?: string;
+  status?: string;
+}
 
 const popularDestinations = [
   {
@@ -68,13 +80,31 @@ const features = [
 
 export default function HomePage() {
   const [form] = Form.useForm()
+  const { searchFlights, isLoading, error } = useSearchFlights()
 
-  const onSearch = (values: any) => {
-    console.log("Search values:", values)
+  const onSearch = async (values: SearchFormValues) => {
+    try {
+      const searchParams = {
+        departureAirport: values.from,
+        arrivalAirport: values.to,
+        // status: "on-time", // Default value
+        // airlineName: "Global Airlines", // Default value
+        departureTimeStart: values.dates?.[0].format("YYYY-MM-DDTHH:mm:ss"),
+        departureTimeEnd: values.dates?.[1].format("YYYY-MM-DDT23:59:59"),
+        // arrivalTimeStart: values.dates?.[1].format("YYYY-MM-DDT00:00:00"),
+        // arrivalTimeEnd: values.dates?.[1].format("YYYY-MM-DDT23:59:59"),
+      }
+      console.log("Search params:", searchParams)
+      const results = await searchFlights(searchParams)
+      console.log("Search results:", results)
+    } catch (error) {
+      console.error("Search failed:", error)
+    }
   }
 
   return (
     <div className="min-h-screen">
+      <Header />
       {/* Hero Section */}
       <div
         className="relative min-h-[600px] flex items-center justify-center py-20 px-4"
@@ -90,53 +120,77 @@ export default function HomePage() {
         <div className="relative z-10 w-full max-w-6xl">
           <div className="text-center mb-8">
             <Title className="!text-white !mb-4">Find Your Perfect Flight</Title>
-            <Text className="text-lg text-gray-200">Discover amazing deals to destinations worldwide</Text>
+            {/* <Text className="text-lg text-gray-200">Discover amazing deals to destinations worldwide</Text> */}
           </div>
-
-          {/* <Card className="max-w-4xl mx-auto">
+          {/* Search Form */}
+          <Card className="mx-auto">
             <Form
               form={form}
               onFinish={onSearch}
               layout="vertical"
               className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
             >
-              <Form.Item name="from" label="From">
+              <Form.Item 
+                name="from" 
+                label="From"
+                rules={[{ required: true, message: "Please select departure airport!" }]}
+              >
                 <Select
                   showSearch
                   placeholder="Departure City"
                   options={[
-                    { value: "nyc", label: "New York" },
-                    { value: "lon", label: "London" },
-                    { value: "tok", label: "Tokyo" },
+                    { value: "JFK", label: "New York (JFK)" },
+                    { value: "LAX", label: "Los Angeles (LAX)" },
+                    { value: "LHR", label: "London (LHR)" },
                   ]}
                   size="large"
                 />
               </Form.Item>
 
-              <Form.Item name="to" label="To">
+              <Form.Item 
+                name="to" 
+                label="To"
+                rules={[{ required: true, message: "Please select arrival airport!" }]}
+              >
                 <Select
                   showSearch
                   placeholder="Arrival City"
                   options={[
-                    { value: "par", label: "Paris" },
-                    { value: "dxb", label: "Dubai" },
-                    { value: "syd", label: "Sydney" },
+                    { value: "CDG", label: "Paris (CDG)" },
+                    { value: "LAX", label: "Los Angeles (LAX)" },
+                    { value: "SYD", label: "Sydney (SYD)" },
                   ]}
                   size="large"
                 />
               </Form.Item>
 
-              <Form.Item name="dates" label="Dates" className="md:col-span-2">
-                <RangePicker size="large" className="w-full" />
+              <Form.Item 
+                name="dates" 
+                label="Departure Dates" 
+                className="md:col-span-2"
+                rules={[{ required: false, message: "Please select dates!" }]}
+              >
+                <RangePicker 
+                  size="large" 
+                  className="w-full" 
+                  format="YYYY-MM-DD"
+                />
               </Form.Item>
 
               <Form.Item className="md:col-span-2 lg:col-span-4">
-                <Button type="primary" htmlType="submit" size="large" block icon={<SearchOutlined />}>
+                <Button 
+                  type="primary" 
+                  htmlType="submit" 
+                  size="large" 
+                  block 
+                  icon={<SearchOutlined />}
+                  loading={isLoading}
+                >
                   Search Flights
                 </Button>
               </Form.Item>
             </Form>
-          </Card> */}
+          </Card>
         </div>
       </div>
 
@@ -280,6 +334,7 @@ export default function HomePage() {
           </Row>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }
