@@ -1,4 +1,4 @@
-import { Card, Button, DatePicker, Select, Form, Typography, Row, Col, Statistic, Tag, Input, message } from "antd"
+import { Card, Button, DatePicker, Select, Form, Typography, Row, Col, Statistic, Tag, Input, message, Collapse } from "antd"
 import {
   SearchOutlined,
   RocketOutlined,
@@ -278,6 +278,77 @@ export default function HomePage() {
               </Col>
             ))}
           </Row>
+        </div>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <Title level={2}>Frequently Asked Questions</Title>
+            <Text className="text-gray-500">Everything you need to know about booking with us</Text>
+          </div>
+          <Collapse className="bg-white">
+            <Collapse.Panel header="What documents do I need for international flights?" key="1">
+              For international flights, you typically need:
+              <ul className="list-disc ml-6 mt-2">
+                <li>A valid passport (with at least 6 months validity beyond your travel dates)</li>
+                <li>Relevant visas for your destination and transit countries</li>
+                <li>Travel insurance documents (recommended)</li>
+                <li>Booking confirmation and e-tickets</li>
+              </ul>
+            </Collapse.Panel>
+
+            <Collapse.Panel header="What is your cancellation and refund policy?" key="2">
+              Our cancellation policy varies depending on the fare type:
+              <ul className="list-disc ml-6 mt-2">
+                <li>Flexible tickets can be cancelled up to 24 hours before departure with full refund</li>
+                <li>Standard tickets can be cancelled with partial refund up to 72 hours before departure</li>
+                <li>Special fare tickets are usually non-refundable</li>
+                <li>All cancellations must be made through our website or customer service</li>
+              </ul>
+            </Collapse.Panel>
+
+            <Collapse.Panel header="How much baggage can I bring?" key="3">
+              Baggage allowance varies by airline and ticket class:
+              <ul className="list-disc ml-6 mt-2">
+                <li>Economy: Usually 1 carry-on (7kg) and 1 checked bag (20-23kg)</li>
+                <li>Business: Usually 1 carry-on (10kg) and 2 checked bags (32kg each)</li>
+                <li>First Class: Usually 2 carry-on and 3 checked bags</li>
+                <li>Additional baggage can be purchased during booking or later</li>
+              </ul>
+            </Collapse.Panel>
+
+            <Collapse.Panel header="How early should I arrive at the airport?" key="4">
+              We recommend arriving at the airport:
+              <ul className="list-disc ml-6 mt-2">
+                <li>2-3 hours before international flights</li>
+                <li>1-2 hours before domestic flights</li>
+                <li>Additional time may be needed during peak travel seasons</li>
+                <li>Check with your specific airline for their recommendations</li>
+              </ul>
+            </Collapse.Panel>
+
+            <Collapse.Panel header="Can I choose my seat in advance?" key="5">
+              Seat selection options depend on your ticket type:
+              <ul className="list-disc ml-6 mt-2">
+                <li>Most airlines offer free seat selection at check-in</li>
+                <li>Advanced seat selection may require an additional fee</li>
+                <li>Premium seats (exit rows, extra legroom) are available for purchase</li>
+                <li>Some fare types include complimentary seat selection</li>
+              </ul>
+            </Collapse.Panel>
+
+            <Collapse.Panel header="What payment methods do you accept?" key="6">
+              We accept various payment methods including:
+              <ul className="list-disc ml-6 mt-2">
+                <li>Major credit and debit cards (Visa, MasterCard, American Express)</li>
+                <li>Digital wallets (Apple Pay, Google Pay)</li>
+                <li>Bank transfers</li>
+                <li>Payment can be made in multiple currencies</li>
+              </ul>
+            </Collapse.Panel>
+          </Collapse>
         </div>
       </div>
 

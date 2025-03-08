@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AuthPage from '../page/authpage';
 import HomePage from '../page/homepage';
-import SearchResult from '../page/searchResultPage';
+// import SearchResult from '../page/searchResultPage';
 import SearchPage from '../page/searchPage';
 
 // Protected Route wrapper component
