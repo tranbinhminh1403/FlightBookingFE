@@ -8,6 +8,7 @@ import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 import Header from '../../components/header';
 import Footer from '../../components/footer';
+import { code } from '../../code';
 
 const { Title } = Typography;
 const { Text } = Typography;
@@ -45,8 +46,8 @@ const SearchPage = () => {
   const handleSearch = async (values: any) => {
     try {
       const params = {
-        departureAirport: values.from ? values.from.toUpperCase() : null,
-        arrivalAirport: values.to ? values.to.toUpperCase() : null,
+        departureAirport: values.from ? values.from.toUpperCase().slice(0, 3) : null,
+        arrivalAirport: values.to ? values.to.toUpperCase().slice(0, 3) : null,
         airlineName: values.airlineName || null,
         departureTimeStart: values.dates?.[0]?.format("YYYY-MM-DDTHH:mm:ss") || null,
         departureTimeEnd: values.dates?.[0]?.format("YYYY-MM-DDT23:59:59") || null,
@@ -85,11 +86,11 @@ const SearchPage = () => {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Form.Item name="from" label="From">
-                <Input placeholder="Departure Airport (e.g., SGN)" />
+                <Select showSearch options={code} placeholder="Departure Airport (e.g., SGN)" />
               </Form.Item>
 
               <Form.Item name="to" label="To">
-                <Input placeholder="Arrival Airport (e.g., BKK)" />
+                <Select showSearch options={code} placeholder="Arrival Airport (e.g., BKK)" />
               </Form.Item>
 
               <Form.Item name="dates" label="Travel Dates">

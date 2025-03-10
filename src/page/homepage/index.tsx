@@ -14,6 +14,7 @@ import { useSearchFlights } from "../../hooks/useSearchFlights"
 import dayjs from "dayjs"
 import { useNavigate } from 'react-router-dom'
 import { useSearchResults } from '../../context/SearchResultsContext'
+import { code } from "../../code"
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
@@ -89,8 +90,8 @@ export default function HomePage() {
   const onSearch = async (values: SearchFormValues) => {
     try {
       const searchParams = {
-        departureAirport: values.from.toUpperCase(),
-        arrivalAirport: values.to.toUpperCase(),
+        departureAirport: values.from.toUpperCase().slice(0, 3),
+        arrivalAirport: values.to.toUpperCase().slice(0, 3),
         departureTimeStart: values.dates?.[0].format("YYYY-MM-DDTHH:mm:ss"),
         departureTimeEnd: values.dates?.[0].format("YYYY-MM-DDT23:59:59"),
       }
@@ -138,11 +139,13 @@ export default function HomePage() {
                 label="From"
                 rules={[{ required: true, message: "Please enter departure airport!" }]}
               >
-                <Input
+                <Select
+                  showSearch
                   placeholder="Enter departure airport (e.g., SGN)"
                   size="large"
                   style={{ textTransform: 'uppercase' }}
                   maxLength={3}
+                  options={code}
                 />
               </Form.Item>
 
@@ -151,11 +154,12 @@ export default function HomePage() {
                 label="To"
                 rules={[{ required: true, message: "Please enter arrival airport!" }]}
               >
-                <Input
+                <Select
+                  showSearch
                   placeholder="Enter arrival airport (e.g., BKK)"
                   size="large"
                   style={{ textTransform: 'uppercase' }}
-                  maxLength={3}
+                  options={code}
                 />
               </Form.Item>
 
@@ -229,9 +233,9 @@ export default function HomePage() {
                         src={destination.image || "/placeholder.svg"}
                         className="w-full h-full object-cover"
                       />
-                      <Tag color="blue" className="absolute top-4 right-4">
+                      {/* <Tag color="blue" className="absolute top-4 right-4">
                         {destination.tag}
-                      </Tag>
+                      </Tag> */}
                     </div>
                   }
                   className="h-full"
