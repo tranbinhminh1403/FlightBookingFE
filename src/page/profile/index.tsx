@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Card, Typography, Tabs, Table, Tag, Spin, Empty, message, Button, Form, Input, Modal } from "antd";
-import { UserOutlined, EnvironmentOutlined, HistoryOutlined, EditOutlined, SaveOutlined } from "@ant-design/icons";
+import { Card, Typography, Tabs, Table, Tag, Spin, Empty, message, Button, Form, Input, Modal, Divider } from "antd";
+import { UserOutlined, EnvironmentOutlined, HistoryOutlined, EditOutlined, SaveOutlined, DollarOutlined } from "@ant-design/icons";
 import FooterComponent from "../../components/footer"
 import HeaderComponent from "../../components/header"
 import { useProfile } from "../../hooks/useProfile";
 import { useUpdateProfile } from "../../hooks/useUpdateProfile";
 import { useChangePassword } from "../../hooks/useChangePassword";
+import { useConfirmPayment } from "../../hooks/useConfirmPayment";
 import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
@@ -19,6 +20,9 @@ export const ProfilePage = () => {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [passwordForm] = Form.useForm();
     const { changePassword, isLoading: isChangingPasswordLoading } = useChangePassword();
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const { confirmPayment, isLoading: isConfirming } = useConfirmPayment();
 
     useEffect(() => {
         fetchProfile().catch((err) => {
@@ -65,6 +69,16 @@ export const ProfilePage = () => {
         } catch (error) {
             // Error message is already handled in the hook
             console.error('Password change failed:', error);
+        }
+    };
+
+    const handlePayment = async (bookingId: number) => {
+        try {
+            await confirmPayment(bookingId);
+            await fetchProfile(); // Refresh profile data
+            setIsDetailModalOpen(false);
+        } catch (error) {
+            console.error('Payment failed:', error);
         }
     };
 
@@ -260,6 +274,13 @@ export const ProfilePage = () => {
                                     dataSource={profile.bookings}
                                     rowKey="bookingId"
                                     pagination={{ pageSize: 5 }}
+                                    onRow={(record) => ({
+                                        onClick: () => {
+                                            setSelectedBooking(record);
+                                            setIsDetailModalOpen(true);
+                                        },
+                                        style: { cursor: 'pointer' }
+                                    })}
                                 />
                             ) : (
                                 <Empty
@@ -280,6 +301,93 @@ export const ProfilePage = () => {
                 )}
             </div>
             <FooterComponent />
+
+            <Modal
+                open={isDetailModalOpen}
+                onCancel={() => {
+                    setIsDetailModalOpen(false);
+                    setSelectedBooking(null);
+                }}
+                footer={null}
+                width={600}
+            >
+                {selectedBooking && (
+                    <div className="space-y-4">
+                        <Title level={4}>Flight Details</Title>
+                        
+                        <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Text type="secondary">Flight Number</Text>
+                                    <div className="font-semibold">{selectedBooking.flightNumber}</div>
+                                </div>
+                                <div>
+                                    <Text type="secondary">Booking Date</Text>
+                                    <div className="font-semibold">
+                                        {dayjs(selectedBooking.bookingDate).format("MMM D, YYYY HH:mm")}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Divider className="my-2" />
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Text type="secondary">From</Text>
+                                    <div className="font-semibold">{selectedBooking.departureAirport}</div>
+                                </div>
+                                <div>
+                                    <Text type="secondary">To</Text>
+                                    <div className="font-semibold">{selectedBooking.arrivalAirport}</div>
+                                </div>
+                            </div>
+
+                            <Divider className="my-2" />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Text type="secondary">Status</Text>
+                                    <div>
+                                        <Tag color={selectedBooking.status === "confirmed" ? "green" : "orange"}>
+                                            {selectedBooking.status.toUpperCase()}
+                                        </Tag>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Text type="secondary">Payment Status</Text>
+                                    <div>
+                                        <Tag color={selectedBooking.paymentStatus === "paid" ? "green" : "red"}>
+                                            {selectedBooking.paymentStatus.toUpperCase()}
+                                        </Tag>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <Text type="secondary">Total Price</Text>
+                                <div className="text-lg font-bold text-blue-600">
+                                    ${selectedBooking.totalPrice.toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+
+                        {selectedBooking.paymentStatus.toLowerCase() !== "paid" && (
+                            <div className="mt-4">
+                                <Button
+                                    type="primary"
+                                    onClick={() => handlePayment(selectedBooking.bookingId)}
+                                    loading={isConfirming}
+                                    icon={<DollarOutlined />}
+                                    block
+                                    size="large"
+                                >
+                                    Confirm Payment
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }

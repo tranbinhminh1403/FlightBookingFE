@@ -357,7 +357,7 @@ export default function HomePage() {
       </div>
 
       {/* Special Offers */}
-      <div className="py-16 px-4">
+      {/* <div className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <Title level={2}>Special Offers</Title>
@@ -403,7 +403,7 @@ export default function HomePage() {
             </Col>
           </Row>
         </div>
-      </div>
+      </div> */}
       <Footer />
     </div>
   )
