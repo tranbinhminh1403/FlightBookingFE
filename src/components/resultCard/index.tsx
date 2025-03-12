@@ -15,6 +15,10 @@ import duration from "dayjs/plugin/duration"
 import { useBookFlight } from '../../hooks/useBookFlight'
 import { useConfirmPayment } from '../../hooks/useConfirmPayment'
 import { useNavigate } from 'react-router-dom'
+import VietnamAirlines from '../../assets/VN.png';
+import VietjetAir from '../../assets/VJ.png';
+import BambooAirways from '../../assets/QH.png';
+import VietravelAirlines from '../../assets/VU.png';
 
 dayjs.extend(duration)
 
@@ -25,7 +29,10 @@ const { Option } = Select
 interface Flight {
   flightId: number
   flightNumber: string
-  airlineName: string
+  airline: {
+    name: string;
+    code: string;
+  }
   departureAirport: string
   arrivalAirport: string
   departureTime: string
@@ -227,8 +234,18 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
         {/* Airline header */}
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-              <SendOutlined className="text-blue-500" />
+            <div className="h-10 w-10 flex items-center justify-center overflow-hidden">
+              <img
+                src={
+                  flight.airline.name === 'Vietnam Airlines' ? VietnamAirlines :
+                  flight.airline.name === 'Vietjet Air' ? VietjetAir :
+                  flight.airline.name === 'Bamboo Airways' ? BambooAirways :
+                  flight.airline.name === 'Vietravel Airlines' ? VietravelAirlines :
+                  VietnamAirlines // default fallback
+                }
+                alt={flight.airline.name}
+                className="h-8 w-8 object-contain"
+              />
             </div>
             <div>
               <Title level={5} className="!m-0">

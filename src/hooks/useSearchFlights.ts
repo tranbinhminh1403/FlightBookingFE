@@ -1,23 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-interface FlightSearchParams {
-  departureAirport?: string
-  arrivalAirport?: string
-  airlineName?: string
-  departureTimeStart?: string
-  departureTimeEnd?: string
-}
-
 interface Flight {
-  id: string
+  flightId: number
+  airline: {
+    name: string
+    code: string
+  }
+  flightNumber: string
   departureAirport: string
   arrivalAirport: string
-  status: string
-  airlineName: string
   departureTime: string
   arrivalTime: string
-  // Add other flight properties as needed
+  status: string
+  economyPrice: number
+  businessPrice: number
+  firstClassPrice: number
+  availableSeats: number
 }
 
 export const useSearchFlights = () => {
@@ -25,31 +24,27 @@ export const useSearchFlights = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const searchFlights = async (params: FlightSearchParams) => {
+  const fetchFlights = async () => {
     try {
       setIsLoading(true)
-      setError(null)
-
       const response = await axios.get<Flight[]>(
-        `${import.meta.env.VITE_API_URL}/flights/tickets/search`,
-        { params }
+        `${import.meta.env.VITE_API_URL}/flights`
       )
-
       setFlights(response.data)
-      return response.data
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to search flights'
-      setError(errorMessage)
-      throw err
+      setError('Failed to fetch flights')
     } finally {
       setIsLoading(false)
     }
   }
 
+  useEffect(() => {
+    fetchFlights()
+  }, [])
+
   return {
     flights,
     isLoading,
     error,
-    searchFlights,
   }
 }

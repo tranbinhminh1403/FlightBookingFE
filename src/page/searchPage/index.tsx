@@ -1,171 +1,181 @@
-import { Card, Form, Input, DatePicker, Select, Button, Typography, Space, Divider, Empty } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
-import { useSearchFlights } from '../../hooks/useSearchFlights';
-import { useSearchResults } from '../../context/SearchResultsContext';
-import { ResultCard } from '../../components/resultCard';
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import dayjs from 'dayjs';
-import Header from '../../components/header';
-import Footer from '../../components/footer';
-import { code } from '../../code';
+import {
+  Card,
+  Input,
+  DatePicker,
+  Select,
+  Typography,
+  Space,
+  Empty,
+  Pagination,
+} from "antd";
+import { useSearchFlights } from "../../hooks/useSearchFlights";
+import { ResultCard } from "../../components/resultCard";
+import { useState } from "react";
+import dayjs from "dayjs";
+import Header from "../../components/header";
+import Footer from "../../components/footer";
+import { code } from "../../code";
 
 const { Title } = Typography;
 const { Text } = Typography;
 
-interface SearchFormValues {
-  from: string;
-  to: string;
-  dates?: [dayjs.Dayjs, dayjs.Dayjs];
-  airlineName?: string;
-  status?: string;
-}
+// interface SearchFormValues {
+//   from: string;
+//   to: string;
+//   dates?: [dayjs.Dayjs, dayjs.Dayjs];
+//   airlineName?: string;
+//   status?: string;
+// }
 
 const SearchPage = () => {
-  const [form] = Form.useForm();
-  const { searchFlights, isLoading } = useSearchFlights();
-  const { searchResults, setSearchResults } = useSearchResults();
-  const location = useLocation();
+  const { flights, isLoading } = useSearchFlights();
+  const [searchText, setSearchText] = useState("");
+  const [departureAirport, setDepartureAirport] = useState<string>("");
+  const [arrivalAirport, setArrivalAirport] = useState<string>("");
+  const [dateRange, setDateRange] = useState<
+    [dayjs.Dayjs | null, dayjs.Dayjs | null]
+  >([null, null]);
+  const [selectedAirline, setSelectedAirline] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 30;
 
-  // Clear search results when component unmounts
-  useEffect(() => {
-    return () => {
-      setSearchResults([]);
-    };
-  }, []);
+  const filteredFlights = flights?.filter((flight) => {
+    const matchesSearch =
+      flight.flightNumber.toLowerCase().includes(searchText.toLowerCase()) ||
+      flight.airline.name.toLowerCase().includes(searchText.toLowerCase());
 
-  // Handle initial search if navigated from homepage
-  useEffect(() => {
-    const searchParams = location.state?.searchParams;
-    if (searchParams) {
-      form.setFieldsValue({
-        from: searchParams.departureAirport,
-        to: searchParams.arrivalAirport,
-        dates: [
-          dayjs(searchParams.departureTimeStart),
-          dayjs(searchParams.departureTimeEnd)
-        ]
-      });
-      handleSearch(searchParams);
-    }
-  }, []);
+    const matchesDeparture =
+      !departureAirport || flight.departureAirport === departureAirport;
+    const matchesArrival =
+      !arrivalAirport || flight.arrivalAirport === arrivalAirport;
+    const matchesAirline =
+      !selectedAirline || flight.airline.name === selectedAirline;
 
-  const handleSearch = async (values: any) => {
-    try {
-      const params = {
-        departureAirport: values.from ? values.from.toUpperCase().slice(0, 3) : null,
-        arrivalAirport: values.to ? values.to.toUpperCase().slice(0, 3) : null,
-        airlineName: values.airlineName || null,
-        departureTimeStart: values.dates?.[0]?.format("YYYY-MM-DDTHH:mm:ss") || null,
-        departureTimeEnd: values.dates?.[0]?.format("YYYY-MM-DDT23:59:59") || null,
-      };
+    const flightDepartureDate = dayjs(flight.departureTime);
+    const matchesDateRange =
+      !dateRange ||
+      !dateRange[0] ||
+      !dateRange[1] ||
+      (flightDepartureDate.isAfter(dateRange[0].startOf("day")) &&
+        flightDepartureDate.isBefore(dateRange[1].endOf("day")));
 
-      // Remove null values from params before making the request
-      const cleanParams = Object.fromEntries(
-        Object.entries(params).filter(([_, value]) => value !== null)
-      );
+    return (
+      matchesSearch &&
+      matchesDeparture &&
+      matchesArrival &&
+      matchesAirline &&
+      matchesDateRange
+    );
+  });
 
-      const results = await searchFlights(cleanParams);
-      setSearchResults(results);
-      console.log("Search params:", cleanParams);
-      console.log("Search results:", results);
-    } catch (error) {
-      console.error('Search failed:', error);
-    }
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedFlights = filteredFlights?.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <Header />
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8 text-center">
+        <div className="mb-8 text-center">
           <Title level={2} className="!text-blue-800 !mb-2">
             Find Your Perfect Flight
           </Title>
-          <Text className="text-gray-600">Search across multiple airlines and find the best deals</Text>
+          <Text className="text-gray-600">
+            Search across multiple airlines and find the best deals
+          </Text>
         </div>
-
         <Card className="mb-8 shadow-lg rounded-xl overflow-hidden border-0">
-          <Form
-            form={form}
-            onFinish={handleSearch}
-            layout="vertical"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Form.Item name="from" label="From">
-                <Select showSearch options={code} placeholder="Departure Airport (e.g., SGN)" />
-              </Form.Item>
-
-              <Form.Item name="to" label="To">
-                <Select showSearch options={code} placeholder="Arrival Airport (e.g., BKK)" />
-              </Form.Item>
-
-              <Form.Item name="dates" label="Travel Dates">
-                <DatePicker.RangePicker className="w-full" />
-              </Form.Item>
-
-              <Form.Item name="airlineName" label="Airline">
-                <Select
-                    // mode="multiple"
-                    allowClear
-                  placeholder="Select Airline"
-                  options={[
-                    { value: 'Vietnam Airlines', label: 'Vietnam Airlines' },
-                    { value: 'Vietjet Air', label: 'Vietjet Air' },
-                    { value: 'Bamboo Airways', label: 'Bamboo Airways' },
-                    { value: 'Vietravel Airlines', label: 'Vietravel Airlines' },
-                  ]}
-                />
-              </Form.Item>
-            </div>
-
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              icon={<SearchOutlined />} 
-              loading={isLoading}
-            >
-              Search Flights
-            </Button>
-          </Form>
+          <Space wrap className="w-full">
+            {/* <Input.Search
+              placeholder="Search flights..."
+              allowClear
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: 200 }}
+            /> */}
+            <Select
+              showSearch
+              allowClear
+              placeholder="Departure Airport"
+              style={{ width: 150 }}
+              onChange={setDepartureAirport}
+              options={code}
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            />
+            <Select
+              showSearch
+              allowClear
+              placeholder="Arrival Airport"
+              style={{ width: 150 }}
+              onChange={setArrivalAirport}
+              options={code}
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            />
+            <DatePicker.RangePicker
+              style={{ width: 280 }}
+              onChange={(dates) =>
+                setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null])
+              }
+            />
+            <Select
+              // mode="multiple"
+              allowClear
+              placeholder="Select Airline"
+              style={{ width: 200 }}
+              onChange={setSelectedAirline}
+              options={[
+                { value: "Vietnam Airlines", label: "Vietnam Airlines" },
+                { value: "Vietjet Air", label: "Vietjet Air" },
+                { value: "Bamboo Airways", label: "Bamboo Airways" },
+                { value: "Vietravel Airlines", label: "Vietravel Airlines" },
+              ]}
+            />
+          </Space>
         </Card>
 
+        <div className="mt-4 mb-4 flex justify-between items-center">
+          <Text>
+            Found <span className="font-semibold">{filteredFlights?.length || 0}</span> flights
+          </Text>
+          {!isLoading && flights?.length > 0 && (
+            <Text className="text-gray-500">
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredFlights?.length || 0)} of {filteredFlights?.length} flights
+            </Text>
+          )}
+        </div>
+
         <div className="space-y-4">
-          {searchResults.length > 0 ? (
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : filteredFlights?.length > 0 ? (
             <>
-              <div className="mb-6">
-                <Title level={4} className="!text-gray-700 !mb-4">
-                  {searchResults.length} {searchResults.length === 1 ? "Flight" : "Flights"} Found
-                </Title>
-                <Divider className="my-4" />
-              </div>
-              {searchResults.map((flight) => (
+              {paginatedFlights.map((flight) => (
                 <ResultCard key={flight.flightId} flight={flight} />
               ))}
+              <div className="mt-6 flex justify-center">
+                <Pagination
+                  current={currentPage}
+                  total={filteredFlights.length}
+                  pageSize={pageSize}
+                  onChange={handlePageChange}
+                  showSizeChanger={false}
+                />
+              </div>
             </>
           ) : (
-            <Card className="text-center py-12">
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={
-                  <div className="space-y-2">
-                    <Text className="text-gray-500 text-lg">No flights found</Text>
-                    <div className="text-gray-400">
-                      Try adjusting your search criteria:
-                      <ul className="list-disc list-inside mt-2">
-                        <li>Check different dates</li>
-                        <li>Try different airports</li>
-                        <li>Remove airline filter</li>
-                      </ul>
-                    </div>
-                  </div>
-                }
-              >
-                <Button type="primary" onClick={() => form.resetFields()}>
-                  Reset Search
-                </Button>
-              </Empty>
-            </Card>
+            <Empty description="No flights found" />
           )}
         </div>
       </div>
