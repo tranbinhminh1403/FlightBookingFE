@@ -90,19 +90,21 @@ export default function HomePage() {
   const onSearch = async (values: SearchFormValues) => {
     try {
       const searchParams = {
-        departureAirport: values.from.toUpperCase().slice(0, 3),
-        arrivalAirport: values.to.toUpperCase().slice(0, 3),
-        departureTimeStart: values.dates?.[0].format("YYYY-MM-DDTHH:mm:ss"),
-        departureTimeEnd: values.dates?.[0].format("YYYY-MM-DDT23:59:59"),
-      }
-      
-      navigate('/search', { 
-        state: { searchParams } 
-      });
+        departureAirport: values.from?.toUpperCase().slice(0, 3),
+        arrivalAirport: values.to?.toUpperCase().slice(0, 3),
+        dateRange: values.dates ? [
+          values.dates[0].format('YYYY-MM-DD'),
+          values.dates[1].format('YYYY-MM-DD')
+        ] : null,
+        selectedAirline: values.airline || ''
+      };
+
+      localStorage.setItem('searchParams', JSON.stringify(searchParams));
+      navigate('/search');
       
     } catch (error) {
-      message.error('Invalid search parameters')
-      console.error("Search failed:", error)
+      message.error('Invalid search parameters');
+      console.error("Search failed:", error);
     }
   }
 
@@ -137,7 +139,7 @@ export default function HomePage() {
               <Form.Item 
                 name="from" 
                 label="From"
-                rules={[{ required: true, message: "Please enter departure airport!" }]}
+                rules={[{ required: false, message: "Please enter departure airport!" }]}
               >
                 <Select
                   showSearch
@@ -152,7 +154,7 @@ export default function HomePage() {
               <Form.Item 
                 name="to" 
                 label="To"
-                rules={[{ required: true, message: "Please enter arrival airport!" }]}
+                rules={[{ required: false, message: "Please enter arrival airport!" }]}
               >
                 <Select
                   showSearch

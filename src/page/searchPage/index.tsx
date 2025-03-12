@@ -7,10 +7,11 @@ import {
   Space,
   Empty,
   Pagination,
+  Button,
 } from "antd";
 import { useSearchFlights } from "../../hooks/useSearchFlights";
 import { ResultCard } from "../../components/resultCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
@@ -38,6 +39,25 @@ const SearchPage = () => {
   const [selectedAirline, setSelectedAirline] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 30;
+
+  useEffect(() => {
+    const savedParams = localStorage.getItem('searchParams');
+    if (savedParams) {
+      const params = JSON.parse(savedParams);
+      setDepartureAirport(params.departureAirport || '');
+      setArrivalAirport(params.arrivalAirport || '');
+      if (params.dateRange) {
+        setDateRange([
+          dayjs(params.dateRange[0]),
+          dayjs(params.dateRange[1])
+        ]);
+      }
+      setSelectedAirline(params.selectedAirline || '');
+      
+      // Clear the stored params after using them
+      localStorage.removeItem('searchParams');
+    }
+  }, []);
 
   const filteredFlights = flights?.filter((flight) => {
     const matchesSearch =
@@ -90,58 +110,71 @@ const SearchPage = () => {
           </Text>
         </div>
         <Card className="mb-8 shadow-lg rounded-xl overflow-hidden border-0">
-          <Space wrap className="w-full">
-            {/* <Input.Search
-              placeholder="Search flights..."
-              allowClear
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: 200 }}
-            /> */}
-            <Select
-              showSearch
-              allowClear
-              placeholder="Departure Airport"
-              style={{ width: 150 }}
-              onChange={setDepartureAirport}
-              options={code}
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-            />
-            <Select
-              showSearch
-              allowClear
-              placeholder="Arrival Airport"
-              style={{ width: 150 }}
-              onChange={setArrivalAirport}
-              options={code}
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-            />
-            <DatePicker.RangePicker
-              style={{ width: 280 }}
-              onChange={(dates) =>
-                setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null])
-              }
-            />
-            <Select
-              // mode="multiple"
-              allowClear
-              placeholder="Select Airline"
-              style={{ width: 200 }}
-              onChange={setSelectedAirline}
-              options={[
-                { value: "Vietnam Airlines", label: "Vietnam Airlines" },
-                { value: "Vietjet Air", label: "Vietjet Air" },
-                { value: "Bamboo Airways", label: "Bamboo Airways" },
-                { value: "Vietravel Airlines", label: "Vietravel Airlines" },
-              ]}
-            />
+          <Space wrap className="w-full justify-between">
+            <Space wrap>
+              {/* <Input.Search
+                placeholder="Search flights..."
+                allowClear
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: 200 }}
+              /> */}
+              <Select
+                showSearch
+                allowClear
+                placeholder="Departure Airport"
+                style={{ width: 150 }}
+                onChange={setDepartureAirport}
+                value={departureAirport || undefined}
+                options={code}
+                filterOption={(input, option) =>
+                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+              />
+              <Select
+                showSearch
+                allowClear
+                placeholder="Arrival Airport"
+                style={{ width: 150 }}
+                onChange={setArrivalAirport}
+                value={arrivalAirport || undefined}
+                options={code}
+                filterOption={(input, option) =>
+                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+              />
+              <DatePicker.RangePicker
+                style={{ width: 280 }}
+                onChange={(dates) =>
+                  setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null])
+                }
+                value={dateRange}
+              />
+              <Select
+                allowClear
+                placeholder="Select Airline"
+                style={{ width: 200 }}
+                onChange={setSelectedAirline}
+                value={selectedAirline || undefined}
+                options={[
+                  { value: "Vietnam Airlines", label: "Vietnam Airlines" },
+                  { value: "Vietjet Air", label: "Vietjet Air" },
+                  { value: "Bamboo Airways", label: "Bamboo Airways" },
+                  { value: "Vietravel Airlines", label: "Vietravel Airlines" },
+                ]}
+              />
+            </Space>
+            <Button 
+              onClick={() => {
+                setDepartureAirport('');
+                setArrivalAirport('');
+                setDateRange([null, null]);
+                setSelectedAirline('');
+                setSearchText('');
+                setCurrentPage(1);
+              }}
+            >
+              Clear Filters
+            </Button>
           </Space>
         </Card>
 
