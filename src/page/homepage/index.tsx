@@ -7,6 +7,7 @@ import {
   CustomerServiceOutlined,
   ArrowRightOutlined,
   StarFilled,
+  SwapOutlined
 } from "@ant-design/icons"
 import Header from "../../components/header"
 import Footer from "../../components/footer"
@@ -108,6 +109,12 @@ export default function HomePage() {
     }
   }
 
+  const handleSwap = () => {
+    const from = form.getFieldValue('from');
+    const to = form.getFieldValue('to');
+    form.setFieldsValue({ from: to, to: from });
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -150,6 +157,12 @@ export default function HomePage() {
                   options={code}
                 />
               </Form.Item>
+{/* 
+              <Button
+                icon={<SwapOutlined />}
+                onClick={handleSwap}
+                style={{ alignSelf: 'center' }}
+              /> */}
 
               <Form.Item 
                 name="to" 

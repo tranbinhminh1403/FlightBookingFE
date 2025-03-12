@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 import { code } from "../../code";
+import { SwapOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 const { Text } = Typography;
@@ -58,6 +59,14 @@ const SearchPage = () => {
       localStorage.removeItem('searchParams');
     }
   }, []);
+
+  const handleSwap = () => {
+    setDepartureAirport((prev) => {
+      const temp = arrivalAirport;
+      setArrivalAirport(prev);
+      return temp;
+    });
+  };
 
   const filteredFlights = flights?.filter((flight) => {
     const matchesSearch =
@@ -129,6 +138,11 @@ const SearchPage = () => {
                 filterOption={(input, option) =>
                   (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
                 }
+              />
+              <Button
+                icon={<SwapOutlined />}
+                onClick={handleSwap}
+                style={{ alignSelf: 'center' }}
               />
               <Select
                 showSearch
