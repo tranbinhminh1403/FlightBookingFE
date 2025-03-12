@@ -1,12 +1,14 @@
 import React from 'react'
 import { Layout, Button, Space, Dropdown } from 'antd'
-import { UserOutlined, LogoutOutlined, SearchOutlined } from '@ant-design/icons'
+import { UserOutlined, LogoutOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom' // Assuming you're using React Router for navigation
+import { useAuth } from '../../hooks/useAuth'
 
 const { Header } = Layout
 
 const HeaderComponent: React.FC = () => {
   const navigate = useNavigate()
+  const { user, isAdmin } = useAuth()
   const isAuthenticated = !!localStorage.getItem('flightToken')
 
   const handleLogout = () => {
@@ -16,16 +18,22 @@ const HeaderComponent: React.FC = () => {
 
   const userMenuItems = [
     {
-      key: 'logout',
-      label: 'Logout',
-      icon: <LogoutOutlined />,
-      onClick: handleLogout,
-    },
-    {
       key: 'profile',
       label: 'Profile',
       icon: <UserOutlined />,
       onClick: () => navigate('/profile'),
+    },
+    ...(isAdmin ? [{
+      key: 'admin',
+      label: 'Admin Dashboard',
+      icon: <SettingOutlined />,
+      onClick: () => navigate('/admin'),
+    }] : []),
+    {
+      key: 'logout',
+      label: 'Logout',
+      icon: <LogoutOutlined />,
+      onClick: handleLogout,
     },
   ]
 

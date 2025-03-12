@@ -27,6 +27,13 @@ const SearchPage = () => {
   const { searchResults, setSearchResults } = useSearchResults();
   const location = useLocation();
 
+  // Clear search results when component unmounts
+  useEffect(() => {
+    return () => {
+      setSearchResults([]);
+    };
+  }, []);
+
   // Handle initial search if navigated from homepage
   useEffect(() => {
     const searchParams = location.state?.searchParams;

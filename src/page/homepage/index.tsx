@@ -101,7 +101,7 @@ export default function HomePage() {
       });
       
     } catch (error) {
-      message.error('Failed to search flights')
+      message.error('Invalid search parameters')
       console.error("Search failed:", error)
     }
   }

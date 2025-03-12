@@ -4,6 +4,8 @@ import HomePage from '../page/homepage';
 // import SearchResult from '../page/searchResultPage';
 import SearchPage from '../page/searchPage';
 import { ProfilePage } from '../page/profile';
+import AdminRoute from '../components/adminRoute';
+import AdminPage from '../page/adminPage';
 
 // Protected Route wrapper component
 // const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -37,5 +39,13 @@ export const router = createBrowserRouter([
   {
     path: '*',
     element: <Navigate to="/" replace />,
+  },
+  {
+    path: '/admin',
+    element: (
+      <AdminRoute>
+        <AdminPage />
+      </AdminRoute>
+    )
   }
 ]); 
