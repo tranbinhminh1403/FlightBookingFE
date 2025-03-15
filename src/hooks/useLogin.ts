@@ -9,6 +9,7 @@ interface LoginCredentials {
 interface LoginResponse {
   token: string;
   message?: string;
+  points: number;
 }
 
 export const useLogin = () => {

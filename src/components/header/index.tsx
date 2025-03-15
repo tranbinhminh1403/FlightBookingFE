@@ -8,11 +8,12 @@ const { Header } = Layout
 
 const HeaderComponent: React.FC = () => {
   const navigate = useNavigate()
-  const { user, isAdmin } = useAuth()
+  const { isAdmin } = useAuth()
   const isAuthenticated = !!localStorage.getItem('flightToken')
 
   const handleLogout = () => {
     localStorage.removeItem('flightToken')
+    localStorage.removeItem('userPoints')
     navigate('/auth')
   }
 

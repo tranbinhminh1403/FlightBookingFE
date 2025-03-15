@@ -2,6 +2,15 @@ import { Modal, Form, Input, Select, InputNumber, DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect } from 'react';
 
+type Flight = {
+  flightId: number;
+  flightNumber: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  departureTime: string;
+  arrivalTime: string;
+}
+
 interface EditFlightModalProps {
   flight: Flight | null;
   isVisible: boolean;

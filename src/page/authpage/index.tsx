@@ -28,6 +28,7 @@ export default function AuthPage() {
       // Store token in localStorage
       if (response?.token) {
         localStorage.setItem('flightToken', response.token)
+        localStorage.setItem('userPoints', response.points.toString())
         message.success("Login successful!")
         navigate('/') // Redirect to home page
       }

@@ -14,6 +14,12 @@ interface JwtPayload {
   exp: number;
 }
 
+interface LoginResponse {
+  message: string;
+  token: string;
+  points: number;
+}
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,10 +67,27 @@ export const useAuth = () => {
     }
   };
 
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      const response = await axios.post<LoginResponse>(
+        `${import.meta.env.VITE_API_URL}/authenticate`,
+        credentials
+      );
+      
+      localStorage.setItem('flightToken', response.data.token);
+      localStorage.setItem('userPoints', response.data.points.toString());
+      
+      return response.data;
+    } catch (error) {
+      // ... error handling
+    }
+  };
+
   return {
     user,
     isLoading,
     checkAuth,
     isAdmin: isAdmin(),
+    login,
   };
 }; 

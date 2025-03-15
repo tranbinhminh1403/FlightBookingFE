@@ -1,13 +1,13 @@
 import type React from "react"
 import { useState } from "react"
-import { Card, Typography, Tag, Button, Tabs, Divider, Modal, Select } from "antd"
+import { Card, Typography, Tag, Button, Tabs, Divider, Modal, Select, Form, Input } from "antd"
 import {
   EnvironmentOutlined,
   ClockCircleOutlined,
   RightOutlined,
   CalendarOutlined,
   UserOutlined,
-  SendOutlined,
+  // SendOutlined,
   DollarOutlined,
 } from "@ant-design/icons"
 import dayjs from "dayjs"
@@ -19,6 +19,8 @@ import VietnamAirlines from '../../assets/VN.png';
 import VietjetAir from '../../assets/VJ.png';
 import BambooAirways from '../../assets/QH.png';
 import VietravelAirlines from '../../assets/VU.png';
+import { useGuestBooking } from '../../hooks/useGuestBooking';
+import { message } from 'antd';
 
 dayjs.extend(duration)
 
@@ -56,6 +58,9 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
   const { bookFlight, isLoading: isBooking } = useBookFlight()
   const { confirmPayment, isLoading: isConfirming } = useConfirmPayment()
   const navigate = useNavigate()
+  // const [isGuestBooking, setIsGuestBooking] = useState(false)
+  const { bookAsGuest, isLoading: isGuestBookingLoading } = useGuestBooking()
+  const [guestForm] = Form.useForm()
 
   // Format times and dates
   const departureDate = dayjs(flight.departureTime)
@@ -74,11 +79,68 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
   // Status color
   const statusColor = flight.status.toLowerCase() === "on-time" ? "success" : "error"
 
+  const calculateDiscount = () => {
+    const points = Number(localStorage.getItem('userPoints'));
+    if (points >= 30000) return 0.30;
+    if (points >= 20000) return 0.20;
+    if (points >= 10000) return 0.15;
+    if (points > 0) return 0.10;
+    return 0;
+  };
+
+  const getDiscountedPrice = (originalPrice: number) => {
+    const discount = calculateDiscount();
+    return originalPrice * (1 - discount);
+  };
+
+  const renderSelectPrice = (price: number) => {
+    const discount = calculateDiscount();
+    if (discount > 0) {
+      const discountedPrice = getDiscountedPrice(price);
+      return (
+        <span>
+          <Text delete className="text-gray-400 mr-2">${price.toFixed(2)}</Text>
+          <Text className="text-green-600">${discountedPrice.toFixed(2)}</Text>
+          <Text type="success" className="text-xs ml-2">(-{(discount * 100)}%)</Text>
+        </span>
+      );
+    }
+    return <span>${price.toFixed(2)}</span>;
+  };
+
+  const renderPrice = (price: number) => {
+    const discount = calculateDiscount();
+    if (discount > 0) {
+      const discountedPrice = getDiscountedPrice(price);
+      return (
+        <div className="text-center">
+          <Text delete className="text-gray-400">${price.toFixed(2)}</Text>
+          <Title level={3} className="!m-0 text-green-600">
+            ${discountedPrice.toFixed(2)}
+          </Title>
+          <Text type="success" className="text-xs">
+            {(discount * 100)}% off with points
+          </Text>
+        </div>
+      );
+    }
+    return (
+      <Title level={3} className="!m-0 text-center">
+        ${price.toFixed(2)}
+      </Title>
+    );
+  };
+
   const handleBook = async () => {
     try {
       const response = await bookFlight({
         flightId: flight.flightId,
         seatClass: seatClass,
+        discountedPrice: getDiscountedPrice(
+          seatClass === 'ECONOMY' ? flight.economyPrice :
+          seatClass === 'BUSINESS' ? flight.businessPrice :
+          flight.firstClassPrice
+        )
       })
       setBookingData(response)
     } catch (error) {
@@ -98,7 +160,92 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
     }
   }
 
+  const handleGuestBook = async () => {
+    try {
+      const values = await guestForm.validateFields()
+      const response = await bookAsGuest({
+        ...values,
+        flightId: flight.flightId,
+        seatClass: seatClass,
+        discountedPrice: getDiscountedPrice(
+          seatClass === 'ECONOMY' ? flight.economyPrice :
+          seatClass === 'BUSINESS' ? flight.businessPrice :
+          flight.firstClassPrice
+        )
+      })
+      setBookingData(response as any)
+      message.success('Guest booking successful!')
+      setIsModalOpen(false)
+    } catch (error) {
+      console.error('Guest booking failed:', error)
+    }
+  }
+
   const renderModalContent = () => {
+    const token = localStorage.getItem('flightToken')
+    
+    if (!token) {
+      return (
+        <>
+          <Form form={guestForm} layout="vertical">
+            <Form.Item
+              name="guestName"
+              label="Full Name"
+              rules={[{ required: true, message: 'Please enter your name' }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: 'Please enter your email' },
+                { type: 'email', message: 'Please enter a valid email' }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="phoneNumber"
+              label="Phone Number"
+              rules={[{ required: true, message: 'Please enter your phone number' }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="seatClass"
+              label="Select Seat Class"
+            >
+              <Select
+                value={seatClass}
+                onChange={setSeatClass}
+                className="w-full"
+              >
+                <Option value="ECONOMY">
+                  Economy - {renderSelectPrice(flight.economyPrice)}
+                </Option>
+                <Option value="BUSINESS">
+                  Business - {renderSelectPrice(flight.businessPrice)}
+                </Option>
+                <Option value="FIRST_CLASS">
+                  First Class - {renderSelectPrice(flight.firstClassPrice)}
+                </Option>
+              </Select>
+            </Form.Item>
+          </Form>
+          <Button 
+            type="primary" 
+            onClick={handleGuestBook} 
+            loading={isGuestBookingLoading}
+            block
+            size="large"
+          >
+            Book as Guest
+          </Button>
+        </>
+      )
+    }
+
     if (!bookingData) {
       return (
         <>
@@ -139,16 +286,16 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
               <Select
                 value={seatClass}
                 onChange={setSeatClass}
-                className="w-full mt-2"
+                className="w-full"
               >
                 <Option value="ECONOMY">
-                  Economy - ${flight.economyPrice}
+                  Economy - {renderSelectPrice(flight.economyPrice)}
                 </Option>
                 <Option value="BUSINESS">
-                  Business - ${flight.businessPrice}
+                  Business - {renderSelectPrice(flight.businessPrice)}
                 </Option>
-                <Option value="FIRST">
-                  First Class - ${flight.firstClassPrice}
+                <Option value="FIRST_CLASS">
+                  First Class - {renderSelectPrice(flight.firstClassPrice)}
                 </Option>
               </Select>
             </div>
@@ -326,19 +473,13 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
             <div className="md:pl-4 flex flex-col">
               <Tabs defaultActiveKey="economy" onChange={setSelectedFare} className="w-full" size="small">
                 <TabPane tab="Economy" key="economy">
-                  <Title level={3} className="!m-0 text-center">
-                    ${flight.economyPrice.toFixed(2)}
-                  </Title>
+                  {renderPrice(flight.economyPrice)}
                 </TabPane>
                 <TabPane tab="Business" key="business">
-                  <Title level={3} className="!m-0 text-center">
-                    ${flight.businessPrice.toFixed(2)}
-                  </Title>
+                  {renderPrice(flight.businessPrice)}
                 </TabPane>
                 <TabPane tab="First" key="first">
-                  <Title level={3} className="!m-0 text-center">
-                    ${flight.firstClassPrice.toFixed(2)}
-                  </Title>
+                  {renderPrice(flight.firstClassPrice)}
                 </TabPane>
               </Tabs>
               <Button 
