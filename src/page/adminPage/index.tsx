@@ -13,8 +13,10 @@ import EditFlightModal from '../../components/editFlightModal';
 import { useAdminFlights } from '../../hooks/useAdminFlights';
 import DashboardCard from '../../components/dashboardCard';
 import { code } from '../../code';
+import { useGuestOrders } from '../../hooks/useGuestOrders';
+import { DashboardCharts } from '../../components/DashboardCharts';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 interface User {
@@ -62,31 +64,147 @@ interface Booking {
   seatClass?: string;
 }
 
-const calculateTotalIncome = (users: User[]) => {
-  return users.reduce((total, user) => {
+interface GuestOrder {
+  orderId: number;
+  guestName: string;
+  email: string;
+  phoneNumber: string;
+  flight: {
+    flightId: number;
+    airline: {
+      airlineId: number;
+      name: string;
+      code: string;
+      country: string;
+    };
+    flightNumber: string;
+    departureAirport: string;
+    arrivalAirport: string;
+    departureTime: string;
+    arrivalTime: string;
+    status: string;
+    economyPrice: number;
+    businessPrice: number;
+    firstClassPrice: number;
+    availableSeats: number;
+  };
+  price: number;
+  orderDate: string;
+  seatClass: string;
+  paymentStatus: string | null;
+}
+
+const calculateTotalIncome = (users: User[], guestOrders: GuestOrder[]) => {
+  const userIncome = users.reduce((total, user) => {
     const paidBookings = user.bookings.filter(booking => booking.paymentStatus.toLowerCase() === 'paid');
     return total + paidBookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
   }, 0);
+
+  const guestIncome = guestOrders?.reduce((total, order) => {
+    return order.paymentStatus === 'PAID' ? total + order.price : total;
+  }, 0) || 0;
+
+  return userIncome + guestIncome;
 };
 
-const calculateIncomeByClass = (users: User[]) => {
+const calculateIncomeByClass = (users: User[], guestOrders: GuestOrder[]) => {
   const income = {
     economy: 0,
     business: 0,
     first: 0
   };
 
+  // Process user bookings
   users?.forEach(user => {
     user.bookings.forEach(booking => {
       if (booking.paymentStatus.toLowerCase() === 'paid') {
-        const seatClass = booking.seatClass?.toLowerCase() || 'economy';
-        income[seatClass] += booking.totalPrice;
+        const price = booking.totalPrice;
+        if (price >= 250 && price <= 410) {
+          income.economy += price;
+        } else if (price >= 750 && price <= 900) {
+          income.business += price;
+        } else if (price >= 1000 && price <= 1500) {
+          income.first += price;
+        }
       }
     });
   });
 
+  // Process guest orders
+  guestOrders?.forEach(order => {
+    if (order.paymentStatus === 'PAID') {
+      const price = order.price;
+      if (price >= 250 && price <= 410) {
+        income.economy += price;
+      } else if (price >= 750 && price <= 900) {
+        income.business += price;
+      } else if (price >= 1000 && price <= 1500) {
+        income.first += price;
+      }
+    }
+  });
+
   return income;
 };
+
+const guestOrderColumns = [
+  {
+    title: 'Order ID',
+    dataIndex: 'orderId',
+    key: 'orderId',
+  },
+  {
+    title: 'Guest Name',
+    dataIndex: 'guestName',
+    key: 'guestName',
+  },
+  {
+    title: 'Email',
+    dataIndex: 'email',
+    key: 'email',
+  },
+  {
+    title: 'Phone',
+    dataIndex: 'phoneNumber',
+    key: 'phoneNumber',
+  },
+  {
+    title: 'Flight Details',
+    key: 'flight',
+    render: (record: GuestOrder) => (
+      <div>
+        <div>{record.flight.flightNumber}</div>
+        <div>{record.flight.departureAirport} → {record.flight.arrivalAirport}</div>
+        <div>{dayjs(record.flight.departureTime).format('MMM D, YYYY HH:mm')}</div>
+      </div>
+    ),
+  },
+  {
+    title: 'Price',
+    key: 'price',
+    render: (record: GuestOrder) => (
+      <div>
+        <div>${record.price.toFixed(2)}</div>
+        <Tag color="blue">{record.seatClass}</Tag>
+      </div>
+    ),
+  },
+  {
+    title: 'Payment Status',
+    key: 'paymentStatus',
+    render: (record: GuestOrder) => (
+      <Tag color={record.paymentStatus === 'PAID' ? 'green' : 'red'}>
+        {record.paymentStatus || 'UNPAID'}
+      </Tag>
+    ),
+  },
+  {
+    title: 'Order Date',
+    dataIndex: 'orderDate',
+    key: 'orderDate',
+    render: (date: string) => dayjs(date).format('MMM D, YYYY HH:mm'),
+  },
+];
 
 const AdminPage = () => {
   const { users, isLoading: isLoadingUsers, fetchUsers } = useAdminUsers();
@@ -107,10 +225,15 @@ const AdminPage = () => {
   const [departureAirport, setDepartureAirport] = useState<string>('');
   const [arrivalAirport, setArrivalAirport] = useState<string>('');
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
+  const { guestOrders, isLoading: isLoadingGuestOrders, fetchGuestOrders } = useGuestOrders();
+  const [selectedGuestOrder, setSelectedGuestOrder] = useState<GuestOrder | null>(null);
+  const [isGuestOrderModalVisible, setIsGuestOrderModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState('users');
 
   useEffect(() => {
     fetchUsers();
     fetchFlights();
+    fetchGuestOrders();
   }, []);
 
   const handleEdit = async (values: any) => {
@@ -365,8 +488,8 @@ const AdminPage = () => {
 
   const totalUsers = users?.length || 0;
   const totalFlights = flights?.length || 0;
-  const totalIncome = calculateTotalIncome(users || []);
-  const incomeByClass = calculateIncomeByClass(users || []);
+  const totalIncome = calculateTotalIncome(users || [], guestOrders || []);
+  const incomeByClass = calculateIncomeByClass(users || [], guestOrders || []);
 
   const filteredUsers = users?.filter(user => {
     const matchesSearch = 
@@ -426,7 +549,7 @@ const AdminPage = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <DashboardCard
             title="Economy Class Income"
             value={incomeByClass.economy}
@@ -448,9 +571,19 @@ const AdminPage = () => {
             prefix="$"
             precision={2}
           />
-        </div>
+        </div> */}
 
-        <Tabs defaultActiveKey="users">
+        <DashboardCharts
+          users={users}
+          guestOrders={guestOrders}
+          activeTab={activeTab}
+          incomeByClass={incomeByClass}
+        />
+
+        <Tabs 
+          defaultActiveKey="users" 
+          onChange={(key) => setActiveTab(key)}
+        >
           <TabPane tab="Users" key="users">
             <Space className="mb-4" direction="horizontal">
               <Input.Search
@@ -519,6 +652,23 @@ const AdminPage = () => {
               </Select>
             </Space>
             <Table columns={flightColumns} dataSource={filteredFlights} />
+          </TabPane>
+          <TabPane tab="Guest Orders" key="guestOrders">
+            <Card>
+              <Table
+                columns={guestOrderColumns}
+                dataSource={guestOrders}
+                loading={isLoadingGuestOrders}
+                rowKey="orderId"
+                onRow={(record) => ({
+                  onClick: () => {
+                    setSelectedGuestOrder(record);
+                    setIsGuestOrderModalVisible(true);
+                  },
+                  style: { cursor: 'pointer' }
+                })}
+              />
+            </Card>
           </TabPane>
         </Tabs>
 
@@ -629,6 +779,105 @@ const AdminPage = () => {
           }}
           onSubmit={handleEditFlight}
         />
+
+        <Modal
+          title="Guest Order Details"
+          open={isGuestOrderModalVisible}
+          onCancel={() => {
+            setIsGuestOrderModalVisible(false);
+            setSelectedGuestOrder(null);
+          }}
+          footer={null}
+          width={600}
+        >
+          {selectedGuestOrder && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Title level={5}>Guest Information</Title>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Text type="secondary">Name</Text>
+                    <div className="font-semibold">{selectedGuestOrder.guestName}</div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Email</Text>
+                    <div className="font-semibold">{selectedGuestOrder.email}</div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Phone</Text>
+                    <div className="font-semibold">{selectedGuestOrder.phoneNumber}</div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Order Date</Text>
+                    <div className="font-semibold">
+                      {dayjs(selectedGuestOrder.orderDate).format('MMM D, YYYY HH:mm')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Title level={5}>Flight Details</Title>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Text type="secondary">Flight Number</Text>
+                    <div className="font-semibold">{selectedGuestOrder.flight.flightNumber}</div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Airline</Text>
+                    <div className="font-semibold">{selectedGuestOrder.flight.airline.name}</div>
+                  </div>
+                  <div>
+                    <Text type="secondary">From</Text>
+                    <div className="font-semibold">{selectedGuestOrder.flight.departureAirport}</div>
+                  </div>
+                  <div>
+                    <Text type="secondary">To</Text>
+                    <div className="font-semibold">{selectedGuestOrder.flight.arrivalAirport}</div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Departure</Text>
+                    <div className="font-semibold">
+                      {dayjs(selectedGuestOrder.flight.departureTime).format('MMM D, YYYY HH:mm')}
+                    </div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Arrival</Text>
+                    <div className="font-semibold">
+                      {dayjs(selectedGuestOrder.flight.arrivalTime).format('MMM D, YYYY HH:mm')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Title level={5}>Payment Details</Title>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Text type="secondary">Seat Class</Text>
+                    <div>
+                      <Tag color="blue">{selectedGuestOrder.seatClass}</Tag>
+                    </div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Payment Status</Text>
+                    <div>
+                      <Tag color={selectedGuestOrder.paymentStatus === 'PAID' ? 'green' : 'red'}>
+                        {selectedGuestOrder.paymentStatus || 'UNPAID'}
+                      </Tag>
+                    </div>
+                  </div>
+                  <div>
+                    <Text type="secondary">Price</Text>
+                    <div className="font-semibold text-lg text-blue-600">
+                      ${selectedGuestOrder.price.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
       <FooterComponent />
     </div>
