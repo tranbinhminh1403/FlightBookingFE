@@ -173,7 +173,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
 
   const handleGuestBook = async () => {
     try {
-      const values = await guestForm.validateFields()
+      const values = await guestForm.validateFields();
       const response = await bookAsGuest({
         ...values,
         flightId: flight.flightId,
@@ -183,14 +183,19 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
           seatClass === 'BUSINESS' ? flight.businessPrice :
           flight.firstClassPrice
         )
-      })
-      setBookingData(response as any)
-      message.success('Guest booking successful!')
-      setIsModalOpen(false)
+      });
+
+      if (response.paymentUrl) {
+        window.location.href = response.paymentUrl;
+      } else {
+        setBookingData(response);
+        message.success('Guest booking successful!');
+        setIsModalOpen(false);
+      }
     } catch (error) {
-      console.error('Guest booking failed:', error)
+      console.error('Guest booking failed:', error);
     }
-  }
+  };
 
   const renderModalContent = () => {
     const token = localStorage.getItem('flightToken')

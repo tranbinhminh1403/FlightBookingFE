@@ -1,19 +1,17 @@
 import { Result, Button, Spin } from 'antd';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { usePaypalConfirm } from '../../hooks/usePaypalConfirm';
 
 const ResultPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { confirmPaypal, isLoading, isConfirmed } = usePaypalConfirm();
-  const [showHomeButton, setShowHomeButton] = useState(false);
+  const { confirmPaypal, isLoading } = usePaypalConfirm();
 
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
       confirmPaypal(token)
-        .then(() => setShowHomeButton(true))
         .catch(console.error);
     }
   }, [searchParams]);
@@ -29,15 +27,11 @@ const ResultPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
       <Result
-        status={isConfirmed ? "success" : "error"}
-        title={isConfirmed ? "Payment Successful!" : "Confirming Payment..."}
-        subTitle={
-          isConfirmed 
-            ? "Your flight has been booked successfully. You will receive a confirmation email shortly."
-            : "Please wait while we confirm your payment."
-        }
+        status="success"
+        title="Payment Successful!"
+        subTitle="Your flight has been booked successfully. You will receive a confirmation email shortly."
         extra={
-          showHomeButton && [
+          [
             <Button 
               type="primary" 
               onClick={() => navigate('/')}

@@ -58,7 +58,7 @@ export const DashboardCharts = ({ users, guestOrders, activeTab, incomeByClass }
         type: 'pie',
         radius: '50%',
         roseType: 'radius',
-        padAngle: 10,
+        // padAngle: 10,
         itemStyle: {
             borderRadius: 10,
             borderColor: '#fff',

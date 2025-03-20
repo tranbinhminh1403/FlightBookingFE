@@ -12,8 +12,11 @@ export const usePaypalConfirm = () => {
       setIsLoading(true);
       setError(null);
 
+      const flightToken = localStorage.getItem('flightToken');
+      const endpoint = flightToken ? '/paypal/confirm' : '/paypal/guest-confirm';
+
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/paypal/confirm`,
+        `${import.meta.env.VITE_API_URL}${endpoint}`,
         { token }
       );
 

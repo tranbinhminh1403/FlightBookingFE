@@ -37,6 +37,9 @@ interface GuestBookingResponse {
   price: number;
   orderDate: string;
   seatClass: string;
+  paypalOrderId: string;
+  paymentUrl: string;
+  paymentStatus: string;
 }
 
 export const useGuestBooking = () => {
