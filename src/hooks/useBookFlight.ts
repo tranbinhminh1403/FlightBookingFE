@@ -16,6 +16,8 @@ interface BookingResponse {
   status: string;
   totalPrice: number;
   paymentStatus: string;
+  updatedPoints: number;
+  paymentUrl: string;
 }
 
 export const useBookFlight = () => {

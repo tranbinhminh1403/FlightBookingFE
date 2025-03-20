@@ -141,14 +141,25 @@ export const ResultCard: React.FC<ResultCardProps> = ({ flight }) => {
           seatClass === 'BUSINESS' ? flight.businessPrice :
           flight.firstClassPrice
         )
-      })
-      setBookingData(response)
+      });
+      
+      // Store updated points
+      if (response.updatedPoints) {
+        localStorage.setItem('userPoints', response.updatedPoints.toString());
+      }
+      
+      // Navigate to PayPal if URL is provided
+      if (response.paymentUrl) {
+        window.location.href = response.paymentUrl;
+      } else {
+        setBookingData(response);
+      }
     } catch (error) {
       if (error.message.includes('login')) {
-        navigate('/auth')
+        navigate('/auth');
       }
     }
-  }
+  };
 
   const handlePayment = async () => {
     try {

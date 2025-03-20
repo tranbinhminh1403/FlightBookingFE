@@ -30,6 +30,10 @@ export const useSearchFlights = () => {
       const response = await axios.get<Flight[]>(
         `${import.meta.env.VITE_API_URL}/flights`
       )
+      if (!Array.isArray(response.data)) {
+        const parsed = JSON.parse(response.data)
+        return Array.isArray(parsed) ? parsed : []
+      }
       setFlights(response.data)
     } catch (err) {
       setError('Failed to fetch flights')

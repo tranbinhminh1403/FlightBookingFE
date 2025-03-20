@@ -6,6 +6,7 @@ import SearchPage from '../page/searchPage';
 import { ProfilePage } from '../page/profile';
 import AdminRoute from '../components/adminRoute';
 import AdminPage from '../page/adminPage';
+import ResultPage from '../pages/resultPage';
 
 // Protected Route wrapper component
 // const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <HomePage />,
+  },
+  {
+    path: '/result',
+    element: <ResultPage />,
   },
   {
     path: '/search',
